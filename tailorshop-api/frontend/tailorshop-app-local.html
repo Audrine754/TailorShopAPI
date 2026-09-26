@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tailor Shop — Live App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --cream:#F6F1E7; --charcoal:#231F1A; --ink:#3A332B;
+  --brass:#A9793F; --thread:#7A2E2E; --sage:#5F6E52; --stone:#8A8175;
+  --line:#DCD3C2; --panel:#FFFDF9;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --cream:#1B1814; --charcoal:#F2ECE0; --ink:#E7DFD0; --line:#3A342A; --panel:#221E18; --stone:#A79E8E; }
+}
+:root[data-theme="dark"]{ --cream:#1B1814; --charcoal:#F2ECE0; --ink:#E7DFD0; --line:#3A342A; --panel:#221E18; --stone:#A79E8E; }
+*{box-sizing:border-box;}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;font-size:15px;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);min-height:100vh;}
+h1,h2{font-family:'Fraunces',serif;color:var(--charcoal);margin:0;}
+.app{display:flex;min-height:100vh;}
+.side{width:210px;flex-shrink:0;background:var(--panel);border-right:1px solid var(--line);padding:26px 18px;display:flex;flex-direction:column;gap:24px;}
+.brand .mark{font-family:'Fraunces',serif;font-size:20px;font-weight:600;color:var(--charcoal);}
+.brand .sub{font-size:11.5px;color:var(--stone);}
+nav{display:flex;flex-direction:column;gap:2px;}
+.navlink{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:6px;color:var(--ink);cursor:pointer;border:none;background:none;text-align:left;width:100%;font-family:inherit;font-size:14px;}
+.navlink:hover{background:var(--cream);}
+.navlink.active{background:var(--charcoal);color:var(--cream);}
+.side-foot{margin-top:auto;font-size:11px;color:var(--stone);border-top:1px solid var(--line);padding-top:12px;}
+.apistatus{display:flex;align-items:center;gap:6px;font-size:12px;}
+.apistatus .dot{width:7px;height:7px;border-radius:50%;background:var(--stone);}
+.apistatus.ok .dot{background:var(--sage);}
+.apistatus.bad .dot{background:var(--thread);}
+main{flex:1;padding:30px 38px;max-width:900px;}
+.screen{display:none;}
+.screen.active{display:block;}
+.topline{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:4px;}
+.lede{color:var(--stone);font-size:13.5px;margin:4px 0 20px;max-width:60ch;}
+.btn{font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;padding:9px 16px;border-radius:6px;border:1px solid var(--charcoal);background:var(--charcoal);color:var(--cream);cursor:pointer;}
+.btn.ghost{background:transparent;color:var(--charcoal);border-color:var(--line);}
+.btn.danger{background:transparent;color:var(--thread);border-color:var(--thread);}
+.btn:disabled{opacity:.5;cursor:default;}
+table{width:100%;border-collapse:collapse;background:var(--panel);font-size:13px;}
+th{text-align:left;font-weight:600;color:var(--stone);font-size:11px;text-transform:uppercase;letter-spacing:.05em;padding:9px 10px;border-bottom:1px solid var(--line);}
+td{padding:10px;border-bottom:1px solid var(--line);}
+tr:last-child td{border-bottom:none;}
+.status{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.status.pending{background:#EFE3C7;color:#7A5B14;}
+.status.in_progress{background:#DDE6D6;color:var(--sage);}
+.status.ready{background:#DCE4EC;color:#3B5876;}
+.status.delivered{background:#E4D9D9;color:var(--thread);}
+.row-actions{display:flex;gap:12px;font-size:12px;}
+.row-actions a{color:var(--brass);cursor:pointer;}
+.row-actions a.del{color:var(--thread);}
+.toolbar{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.formcard{background:var(--panel);border:1px solid var(--line);padding:22px 24px;max-width:480px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:600;margin-bottom:5px;}
+.field input,.field select,.field textarea{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:5px;background:var(--cream);color:var(--ink);font-family:'Inter',sans-serif;font-size:13px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.formfoot{display:flex;gap:10px;margin-top:16px;}
+.msg{padding:10px 12px;border-radius:6px;font-size:13px;margin-bottom:14px;display:none;}
+.msg.show{display:block;}
+.msg.ok{background:#DDE6D6;color:var(--sage);}
+.msg.err{background:#F0DCDC;color:var(--thread);}
+.empty{color:var(--stone);font-size:13px;padding:16px 0;}
+@media (max-width:720px){.app{flex-direction:column;}.side{width:100%;flex-direction:row;align-items:center;overflow-x:auto;}.side-foot{display:none;}main{padding:20px 16px;}.two-col{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span class="mark">Atelier Ledger</span><br><span class="sub">Live — Spring Boot API</span></div>
+    <nav>
+      <button class="navlink active" onclick="show('customers',this)">Customers</button>
+      <button class="navlink" onclick="show('orders',this)">Orders</button>
+      <button class="navlink" onclick="show('measurements',this)">Measurements</button>
+    </nav>
+    <div class="side-foot">
+      <div class="apistatus" id="apistatus"><span class="dot"></span><span id="apistatus-text">Checking API…</span></div>
+      <div style="margin-top:8px;">API base: <code id="baseUrlLabel"></code></div>
+    </div>
+  </aside>
+
+  <main>
+    <!-- CUSTOMERS -->
+    <section class="screen active" id="customers">
+      <div class="topline"><h1>Customers</h1></div>
+      <p class="lede">Reads and writes go straight to <code>/api/customers</code> on your running Spring Boot app.</p>
+      <div id="cust-msg" class="msg"></div>
+      <div class="toolbar">
+        <button class="btn" onclick="openCustForm()">+ Add customer</button>
+        <button class="btn ghost" onclick="loadCustomers()">Refresh</button>
+      </div>
+      <table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Address</th><th></th></tr></thead>
+        <tbody id="cust-rows"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+      </table>
+
+      <div class="formcard" id="cust-form" style="display:none;margin-top:20px;">
+        <h2 id="cust-form-title" style="font-size:17px;margin-bottom:14px;">Add customer</h2>
+        <input type="hidden" id="cust-id">
+        <div class="field"><label>Full name</label><input id="cust-fullName"></div>
+        <div class="two-col">
+          <div class="field"><label>Phone</label><input id="cust-phone"></div>
+          <div class="field"><label>Email</label><input id="cust-email"></div>
+        </div>
+        <div class="field"><label>Address</label><input id="cust-address"></div>
+        <div class="formfoot">
+          <button class="btn" onclick="saveCustomer()">Save</button>
+          <button class="btn ghost" onclick="closeCustForm()">Cancel</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ORDERS -->
+    <section class="screen" id="orders">
+      <div class="topline"><h1>Orders</h1></div>
+      <p class="lede">Wired to <code>/api/orders</code>. Delivered orders are locked by the API, so edit/delete will show its error.</p>
+      <div id="ord-msg" class="msg"></div>
+      <div class="toolbar">
+        <button class="btn" onclick="openOrdForm()">+ New order</button>
+        <button class="btn ghost" onclick="loadOrders()">Refresh</button>
+      </div>
+      <table><thead><tr><th>Customer</th><th>Item</th><th>Price</th><th>Due</th><th>Status</th><th></th></tr></thead>
+        <tbody id="ord-rows"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+      </table>
+
+      <div class="formcard" id="ord-form" style="display:none;margin-top:20px;">
+        <h2 id="ord-form-title" style="font-size:17px;margin-bottom:14px;">New order</h2>
+        <input type="hidden" id="ord-id">
+        <div class="field"><label>Customer</label><select id="ord-customer"></select></div>
+        <div class="field"><label>Description</label><input id="ord-desc"></div>
+        <div class="two-col">
+          <div class="field"><label>Price (RWF)</label><input id="ord-price" type="number"></div>
+          <div class="field"><label>Due date</label><input id="ord-due" type="date"></div>
+        </div>
+        <div class="field"><label>Status</label>
+          <select id="ord-status"><option value="PENDING">Pending</option><option value="IN_PROGRESS">In progress</option><option value="READY">Ready</option><option value="DELIVERED">Delivered</option></select>
+        </div>
+        <div class="formfoot">
+          <button class="btn" onclick="saveOrder()">Save</button>
+          <button class="btn ghost" onclick="closeOrdForm()">Cancel</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MEASUREMENTS -->
+    <section class="screen" id="measurements">
+      <div class="topline"><h1>Measurements</h1></div>
+      <p class="lede">Wired to <code>/api/measurements</code>. The API rejects a waist more than 50cm over the chest.</p>
+      <div id="mea-msg" class="msg"></div>
+      <div class="toolbar">
+        <button class="btn" onclick="openMeaForm()">+ Add measurement</button>
+        <button class="btn ghost" onclick="loadMeasurements()">Refresh</button>
+      </div>
+      <table><thead><tr><th>Customer</th><th>Chest</th><th>Waist</th><th>Hip</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="mea-rows"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
+      </table>
+
+      <div class="formcard" id="mea-form" style="display:none;margin-top:20px;">
+        <h2 id="mea-form-title" style="font-size:17px;margin-bottom:14px;">Add measurement</h2>
+        <input type="hidden" id="mea-id">
+        <div class="field"><label>Customer</label><select id="mea-customer"></select></div>
+        <div class="two-col">
+          <div class="field"><label>Chest (cm)</label><input id="mea-chest" type="number"></div>
+          <div class="field"><label>Waist (cm)</label><input id="mea-waist" type="number"></div>
+        </div>
+        <div class="two-col">
+          <div class="field"><label>Hip (cm)</label><input id="mea-hip" type="number"></div>
+          <div class="field"><label>Length (cm)</label><input id="mea-length" type="number"></div>
+        </div>
+        <div class="field"><label>Notes</label><textarea id="mea-notes" rows="2"></textarea></div>
+        <div class="formfoot">
+          <button class="btn" onclick="saveMeasurement()">Save</button>
+          <button class="btn ghost" onclick="closeMeaForm()">Cancel</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const BASE = 'http://localhost:8080/api';
+document.getElementById('baseUrlLabel').textContent = BASE;
+let customersCache = [];
+
+function show(id, btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.navlink').forEach(n=>n.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function flash(elId, text, ok){
+  const el = document.getElementById(elId);
+  el.textContent = text; el.className = 'msg show ' + (ok ? 'ok' : 'err');
+  setTimeout(()=>el.classList.remove('show'), 5000);
+}
+
+async function api(path, opts){
+  const res = await fetch(BASE + path, Object.assign({headers:{'Content-Type':'application/json'}}, opts));
+  let body = null;
+  try{ body = await res.json(); }catch(e){}
+  if(!res.ok){
+    const msg = body && body.message ? body.message : ('Request failed (' + res.status + ')');
+    throw new Error(msg);
+  }
+  return body;
+}
+
+async function checkApi(){
+  const el = document.getElementById('apistatus'), txt = document.getElementById('apistatus-text');
+  try{
+    await fetch(BASE + '/customers');
+    el.className = 'apistatus ok'; txt.textContent = 'API connected';
+  }catch(e){
+    el.className = 'apistatus bad'; txt.textContent = 'API unreachable — is it running?';
+  }
+}
+
+/* ---------- CUSTOMERS ---------- */
+async function loadCustomers(){
+  const tbody = document.getElementById('cust-rows');
+  tbody.innerHTML = '<tr><td colspan="5" class="empty">Loading…</td></tr>';
+  try{
+    const list = await api('/customers');
+    customersCache = list;
+    fillCustomerSelects();
+    if(!list.length){ tbody.innerHTML = '<tr><td colspan="5" class="empty">No customers yet.</td></tr>'; return; }
+    tbody.innerHTML = list.map(c => `<tr>
+      <td>${esc(c.fullName)}</td><td>${esc(c.phone)}</td><td>${esc(c.email||'')}</td><td>${esc(c.address||'')}</td>
+      <td class="row-actions"><a onclick='editCustomer(${c.id})'>Edit</a><a class="del" onclick="deleteCustomer(${c.id})">Remove</a></td>
+    </tr>`).join('');
+  }catch(e){ tbody.innerHTML = '<tr><td colspan="5" class="empty">Could not load — ' + esc(e.message) + '</td></tr>'; }
+}
+function fillCustomerSelects(){
+  const opts = customersCache.map(c => `<option value="${c.id}">${esc(c.fullName)} — ${esc(c.phone)}</option>`).join('');
+  document.getElementById('ord-customer').innerHTML = opts || '<option value="">No customers yet</option>';
+  document.getElementById('mea-customer').innerHTML = opts || '<option value="">No customers yet</option>';
+}
+function openCustForm(){
+  document.getElementById('cust-form-title').textContent = 'Add customer';
+  document.getElementById('cust-id').value = '';
+  ['fullName','phone','email','address'].forEach(f=>document.getElementById('cust-'+f).value='');
+  document.getElementById('cust-form').style.display='block';
+}
+function closeCustForm(){ document.getElementById('cust-form').style.display='none'; }
+function editCustomer(id){
+  const c = customersCache.find(x=>x.id===id); if(!c) return;
+  document.getElementById('cust-form-title').textContent = 'Edit customer';
+  document.getElementById('cust-id').value = c.id;
+  document.getElementById('cust-fullName').value = c.fullName;
+  document.getElementById('cust-phone').value = c.phone;
+  document.getElementById('cust-email').value = c.email||'';
+  document.getElementById('cust-address').value = c.address||'';
+  document.getElementById('cust-form').style.display='block';
+}
+async function saveCustomer(){
+  const id = document.getElementById('cust-id').value;
+  const payload = {
+    fullName: document.getElementById('cust-fullName').value,
+    phone: document.getElementById('cust-phone').value,
+    email: document.getElementById('cust-email').value,
+    address: document.getElementById('cust-address').value
+  };
+  try{
+    await api(id ? '/customers/'+id : '/customers', {method: id?'PUT':'POST', body: JSON.stringify(payload)});
+    flash('cust-msg', id ? 'Customer updated.' : 'Customer created.', true);
+    closeCustForm(); loadCustomers();
+  }catch(e){ flash('cust-msg', e.message, false); }
+}
+async function deleteCustomer(id){
+  try{ await api('/customers/'+id, {method:'DELETE'}); flash('cust-msg','Customer removed.',true); loadCustomers(); }
+  catch(e){ flash('cust-msg', e.message, false); }
+}
+
+/* ---------- ORDERS ---------- */
+async function loadOrders(){
+  const tbody = document.getElementById('ord-rows');
+  tbody.innerHTML = '<tr><td colspan="6" class="empty">Loading…</td></tr>';
+  try{
+    const list = await api('/orders');
+    if(!list.length){ tbody.innerHTML = '<tr><td colspan="6" class="empty">No orders yet.</td></tr>'; return; }
+    tbody.innerHTML = list.map(o => `<tr>
+      <td>${esc(o.customer ? o.customer.fullName : '')}</td><td>${esc(o.description)}</td>
+      <td>${Number(o.price).toLocaleString()} RWF</td><td>${esc(o.dueDate)}</td>
+      <td><span class="status ${o.status.toLowerCase()}">${esc(o.status.replace('_',' '))}</span></td>
+      <td class="row-actions"><a onclick='editOrder(${JSON.stringify(o).replace(/'/g,"&apos;")})'>Edit</a><a class="del" onclick="deleteOrder(${o.id})">Delete</a></td>
+    </tr>`).join('');
+  }catch(e){ tbody.innerHTML = '<tr><td colspan="6" class="empty">Could not load — ' + esc(e.message) + '</td></tr>'; }
+}
+function openOrdForm(){
+  if(!customersCache.length){ flash('ord-msg','Add a customer first.', false); return; }
+  document.getElementById('ord-form-title').textContent = 'New order';
+  document.getElementById('ord-id').value = '';
+  document.getElementById('ord-desc').value = '';
+  document.getElementById('ord-price').value = '';
+  document.getElementById('ord-due').value = '';
+  document.getElementById('ord-status').value = 'PENDING';
+  document.getElementById('ord-form').style.display='block';
+}
+function closeOrdForm(){ document.getElementById('ord-form').style.display='none'; }
+function editOrder(o){
+  document.getElementById('ord-form-title').textContent = 'Edit order';
+  document.getElementById('ord-id').value = o.id;
+  document.getElementById('ord-customer').value = o.customer.id;
+  document.getElementById('ord-desc').value = o.description;
+  document.getElementById('ord-price').value = o.price;
+  document.getElementById('ord-due').value = o.dueDate;
+  document.getElementById('ord-status').value = o.status;
+  document.getElementById('ord-form').style.display='block';
+}
+async function saveOrder(){
+  const id = document.getElementById('ord-id').value;
+  const payload = {
+    description: document.getElementById('ord-desc').value,
+    price: Number(document.getElementById('ord-price').value),
+    dueDate: document.getElementById('ord-due').value,
+    status: document.getElementById('ord-status').value,
+    customer: { id: Number(document.getElementById('ord-customer').value) }
+  };
+  try{
+    await api(id ? '/orders/'+id : '/orders', {method: id?'PUT':'POST', body: JSON.stringify(payload)});
+    flash('ord-msg', id ? 'Order updated.' : 'Order created.', true);
+    closeOrdForm(); loadOrders();
+  }catch(e){ flash('ord-msg', e.message, false); }
+}
+async function deleteOrder(id){
+  try{ await api('/orders/'+id, {method:'DELETE'}); flash('ord-msg','Order deleted.',true); loadOrders(); }
+  catch(e){ flash('ord-msg', e.message, false); }
+}
+
+/* ---------- MEASUREMENTS ---------- */
+async function loadMeasurements(){
+  const tbody = document.getElementById('mea-rows');
+  tbody.innerHTML = '<tr><td colspan="6" class="empty">Loading…</td></tr>';
+  try{
+    const list = await api('/measurements');
+    if(!list.length){ tbody.innerHTML = '<tr><td colspan="6" class="empty">No measurements yet.</td></tr>'; return; }
+    tbody.innerHTML = list.map(m => `<tr>
+      <td>${esc(m.customer ? m.customer.fullName : '')}</td><td>${m.chest}</td><td>${m.waist}</td><td>${m.hip??''}</td><td>${esc(m.notes||'')}</td>
+      <td class="row-actions"><a onclick='editMeasurement(${JSON.stringify(m).replace(/'/g,"&apos;")})'>Edit</a><a class="del" onclick="deleteMeasurement(${m.id})">Delete</a></td>
+    </tr>`).join('');
+  }catch(e){ tbody.innerHTML = '<tr><td colspan="6" class="empty">Could not load — ' + esc(e.message) + '</td></tr>'; }
+}
+function openMeaForm(){
+  if(!customersCache.length){ flash('mea-msg','Add a customer first.', false); return; }
+  document.getElementById('mea-form-title').textContent = 'Add measurement';
+  document.getElementById('mea-id').value = '';
+  ['chest','waist','hip','length','notes'].forEach(f=>document.getElementById('mea-'+f).value='');
+  document.getElementById('mea-form').style.display='block';
+}
+function closeMeaForm(){ document.getElementById('mea-form').style.display='none'; }
+function editMeasurement(m){
+  document.getElementById('mea-form-title').textContent = 'Edit measurement';
+  document.getElementById('mea-id').value = m.id;
+  document.getElementById('mea-customer').value = m.customer.id;
+  document.getElementById('mea-chest').value = m.chest;
+  document.getElementById('mea-waist').value = m.waist;
+  document.getElementById('mea-hip').value = m.hip ?? '';
+  document.getElementById('mea-length').value = m.length ?? '';
+  document.getElementById('mea-notes').value = m.notes || '';
+  document.getElementById('mea-form').style.display='block';
+}
+async function saveMeasurement(){
+  const id = document.getElementById('mea-id').value;
+  const payload = {
+    chest: Number(document.getElementById('mea-chest').value),
+    waist: Number(document.getElementById('mea-waist').value),
+    hip: document.getElementById('mea-hip').value ? Number(document.getElementById('mea-hip').value) : null,
+    length: document.getElementById('mea-length').value ? Number(document.getElementById('mea-length').value) : null,
+    notes: document.getElementById('mea-notes').value,
+    customer: { id: Number(document.getElementById('mea-customer').value) }
+  };
+  try{
+    await api(id ? '/measurements/'+id : '/measurements', {method: id?'PUT':'POST', body: JSON.stringify(payload)});
+    flash('mea-msg', id ? 'Measurement updated.' : 'Measurement saved.', true);
+    closeMeaForm(); loadMeasurements();
+  }catch(e){ flash('mea-msg', e.message, false); }
+}
+async function deleteMeasurement(id){
+  try{ await api('/measurements/'+id, {method:'DELETE'}); flash('mea-msg','Measurement deleted.',true); loadMeasurements(); }
+  catch(e){ flash('mea-msg', e.message, false); }
+}
+
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+checkApi();
+loadCustomers();
+loadOrders();
+loadMeasurements();
+</script>
+</body>
+</html>
